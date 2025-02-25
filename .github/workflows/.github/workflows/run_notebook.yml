@@ -1,0 +1,39 @@
+name: Auto-run Jupyter Notebook on Code Changes
+
+on:
+  push:
+    branches:
+      - main  # Change to your branch name if needed
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  run-notebook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install jupyter nbconvert wandb
+
+      - name: Run Jupyter Notebook
+        env:
+          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}  # Store your W&B API key in GitHub Secrets
+        run: |
+          jupyter nbconvert --execute --to notebook --inplace face_clustering.ipynb
+
+      - name: Upload Notebook Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: executed-notebook
+          path: face_clustering.ipynb
